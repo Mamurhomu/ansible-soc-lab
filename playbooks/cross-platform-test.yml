@@ -1,0 +1,86 @@
+---
+- name: Cross-Platform Connectivity Test
+  hosts: all_servers
+  gather_facts: yes
+
+  tasks:
+    - name: Display server information
+      debug:
+        msg: |
+          Server: {{ inventory_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version if ansible_distribution == 'Ubuntu' else '' }}
+          Connection: SUCCESS
+
+    - name: Check Ubuntu release info
+      shell: "lsb_release -d"
+      when: ansible_distribution == "Ubuntu"
+      register: ubuntu_release
+
+    - name: Check Windows OS version
+      win_shell: "systeminfo | findstr /B /C:'OS Name' /C:'OS Version'"
+      when: ansible_os_family == "Windows"
+      register: windows_version
+
+    - name: Display OS information
+      debug:
+        msg: |
+          {% if ansible_distribution == "Ubuntu" %}
+          {{ ubuntu_release.stdout }}
+          {% else %}
+          {{ windows_version.stdout }}
+          {% endif %}
+
+    - name: Check system time
+      shell: "date"
+      when: ansible_distribution == "Ubuntu"
+      register: ubuntu_time
+
+    - name: Check Windows time
+      win_shell: "Get-Date"
+      when: ansible_os_family == "Windows"
+      register: windows_time
+
+    - name: Display system time
+      debug:
+        msg: |
+          {% if ansible_distribution == "Ubuntu" %}
+          Ubuntu time: {{ ubuntu_time.stdout }}
+          {% else %}
+          Windows time: {{ windows_time.stdout }}
+          {% endif %}
+
+    - name: Check disk space (Ubuntu)
+      shell: "df -h / | awk 'NR==2{print $4}'"
+      when: ansible_distribution == "Ubuntu"
+      register: ubuntu_disk
+
+    - name: Check disk space (Windows)
+      win_shell: "Get-PSDrive C | Select-Object -ExpandProperty Free"
+      when: ansible_os_family == "Windows"
+      register: windows_disk
+
+    - name: Display free disk space
+      debug:
+        msg: |
+          {% if ansible_distribution == "Ubuntu" %}
+          Free disk space: {{ ubuntu_disk.stdout }}
+          {% else %}
+          Free disk space: {{ windows_disk.stdout }} bytes
+          {% endif %}
+
+    - name: Create connectivity report
+      copy:
+        content: |
+          Cross-Platform Test Report
+          =========================
+          Server: {{ inventory_hostname }}
+          OS: {{ ansible_distribution }} {{ ansible_distribution_version if ansible_distribution == 'Ubuntu' else '' }}
+          Test Time: {{ ansible_date_time.iso8601 }}
+          Status: SUCCESS
+          {% if ansible_distribution == "Ubuntu" %}
+          Free Space: {{ ubuntu_disk.stdout }}
+          {% else %}
+          Free Space: {{ windows_disk.stdout }} bytes
+          {% endif %}
+        dest: "./reports/test-{{ inventory_hostname }}.txt"
+      delegate_to: localhost

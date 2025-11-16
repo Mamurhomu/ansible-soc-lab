@@ -1,0 +1,23 @@
+---
+- name: Quick SOC Lab Status
+  hosts: security_tools
+  become: yes
+  tasks:
+    - name: Get quick status
+      shell: |
+        echo "=== $(hostname) ==="
+        echo "Uptime: $(uptime -p)"
+        echo "Disk: $(df -h / | awk 'NR==2 {print $5}')"
+        echo "Memory: $(free -h | awk 'NR==2 {print $3"/"$2}')"
+        echo "Load: $(cat /proc/loadavg | cut -d' ' -f1-3)"
+        echo "Services:"
+        systemctl is-active docker 2>/dev/null && echo "  Docker: ✅" || echo "  Docker: ❌"
+        systemctl is-active wazuh-agent 2>/dev/null && echo "  Wazuh: ✅" || echo "  Wazuh: ❌"
+        systemctl is-active splunk 2>/dev/null && echo "  Splunk: ✅" || echo "  Splunk: ❌"
+        echo "---"
+      register: quick_status
+      changed_when: false
+
+    - name: Display quick status
+      debug:
+        msg: "{{ quick_status.stdout }}"

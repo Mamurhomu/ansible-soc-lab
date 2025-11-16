@@ -1,0 +1,15 @@
+---
+- name: Check SOC Core Services
+  hosts: soc_core
+  become: yes
+  tasks:
+    - name: Check SOC containers
+      shell: docker ps | grep -E '(thehive|cortex|shuffle|velociraptor)'
+      register: soc_containers
+      changed_when: false
+    
+    - name: Display SOC Core status
+      debug:
+        msg: |
+          === SOC Core Services on {{ inventory_hostname }} ===
+          {{ soc_containers.stdout | default('No SOC containers found') }}

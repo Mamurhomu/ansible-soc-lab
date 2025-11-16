@@ -1,0 +1,38 @@
+---
+- name: 🚀 SOC LAB DASHBOARD
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Display SOC Dashboard Header
+      debug:
+        msg: |
+          🛡️  SOC LAB MANAGEMENT DASHBOARD
+          ================================
+          Managed by Ansible from Kali Linux
+          Total Servers: {{ groups['security_tools'] | length }}
+
+- name: Health Status Overview
+  hosts: security_tools
+  become: yes
+  tasks:
+    - name: Collect basic health info
+      shell: |
+        echo "Disk: $(df -h / | awk 'NR==2 {print $5}')"
+        echo "Memory: $(free | awk 'NR==2{printf "%.1f%%", $3*100/$2}')"
+        echo "Load: $(cat /proc/loadavg | cut -d' ' -f1)"
+      register: health_info
+      changed_when: false
+
+    - name: Display server status
+      debug:
+        msg: |
+          🖥️  {{ inventory_hostname }}
+          💾 {{ (health_info.stdout_lines[0].split(":")[1] | trim) }}
+          🧠 {{ (health_info.stdout_lines[1].split(":")[1] | trim) }}
+          📊 {{ (health_info.stdout_lines[2].split(":")[1] | trim) }}
+          {% if 'docker' in group_names %}🐳 Docker: Running{% endif %}
+          {% if 'soc_core' in group_names %}🛡️  SOC Core{% endif %}
+          {% if 'mailcow_docker' in group_names %}📧 Mail Server{% endif %}
+          {% if 'wazuh_manager' in group_names %}📈 Wazuh Manager{% endif %}
+          {% if 'splunk_server' in group_names %}📊 Splunk Server{% endif %}
+          {% if 'cowrie_honeypot' in group_names %}🍯 Honeypot{% endif %}

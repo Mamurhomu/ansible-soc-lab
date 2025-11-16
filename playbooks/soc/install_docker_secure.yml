@@ -1,0 +1,34 @@
+---
+- name: Install Docker on SOC Servers
+  hosts: security_tools
+  become: yes
+
+  tasks:
+    - name: Check if Docker is installed
+      command: which docker
+      register: docker_installed
+      ignore_errors: yes
+      changed_when: false
+
+    - name: Install Docker
+      apt:
+        name: 
+          - docker.io
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+      when: docker_installed.rc != 0
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      when: docker_installed.rc != 0
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+      when: docker_installed.rc != 0

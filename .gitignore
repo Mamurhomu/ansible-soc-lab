@@ -1,0 +1,59 @@
+# Ansible
+*.retry
+.ansible_retry/
+retry-files/
+
+# Sensitive configuration files
+inventories/group_vars/all.yml
+inventories/host_vars/*/vault.yml
+vault_password
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Secrets
+*.key
+*.pem
+*.vault
+*password*
+*secret*
+*.env
+
+# Logs
+*.log
+ansible.log
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# Personal files
+backup/
+personal/
+
+# Local files
+FINAL_SOC_LAB_COMPLETE.txt
+soc_lab_summary.txt
+reports/
+
+# Protect original playbooks with hardcoded values
+playbooks/soc_correct_architecture.yml
+playbooks/soc_network_flow.yml
+playbooks/soc/install_docker.yml
+playbooks/soc/install_docker_fixed.yml
+
+# Protect backup directories
+playbooks-backup/
+
+# Protect any file that might contain real data
+*backup*
+*original*
+*local*
+
+# Protect script files
+soc_daily_check.sh
+daily_check.sh
+scripts/daily_check_secure.sh

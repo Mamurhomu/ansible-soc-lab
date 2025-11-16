@@ -1,0 +1,43 @@
+---
+- name: 🎉 FINAL SOC LAB DASHBOARD - DOCKER INSTALLED
+  hosts: security_tools
+  become: yes
+  tasks:
+    - name: Collect comprehensive status
+      shell: |
+        echo "=== $(hostname) ==="
+        echo "💾 Disk: $(df -h / | awk 'NR==2 {print $5 " used (" $3 "/" $2 ")"}')"
+        echo "🧠 Memory: $(free -h | awk 'NR==2 {print $3 "/" $2 " (" $3*100/$2 "%)"}')"
+        echo "📊 Load: $(cat /proc/loadavg | cut -d' ' -f1-3)"
+        echo "🐳 Docker: $(docker --version | cut -d' ' -f3-5)"
+        echo "🔧 Services:"
+        
+        # Docker status
+        if systemctl is-active docker >/dev/null 2>&1; then
+          CONTAINERS=$(docker ps -q 2>/dev/null | wc -l)
+          echo "  🐳 Docker: ✅ ($CONTAINERS containers running)"
+        else
+          echo "  🐳 Docker: ❌"
+        fi
+        
+        # Wazuh status
+        if systemctl is-active wazuh-agent >/dev/null 2>&1; then
+          echo "  📈 Wazuh Agent: ✅"
+        else
+          echo "  📈 Wazuh Agent: ❌"
+        fi
+        
+        # Splunk status  
+        if systemctl is-active splunk >/dev/null 2>&1; then
+          echo "  📊 Splunk: ✅"
+        else
+          echo "  📊 Splunk: ❌"
+        fi
+        
+        echo "---"
+      register: status_report
+      changed_when: false
+
+    - name: Display final dashboard
+      debug:
+        msg: "{{ status_report.stdout }}"

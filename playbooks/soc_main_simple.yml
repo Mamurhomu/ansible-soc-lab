@@ -1,0 +1,3 @@
+---
+- import_playbook: soc/health_check.yml
+# Temporarily exclude docker_services.yml until we fix it completely

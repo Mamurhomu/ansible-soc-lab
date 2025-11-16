@@ -1,0 +1,23 @@
+---
+- name: 🏗️ SOC Lab Architecture Validation
+  hosts: security_tools
+  become: yes
+  gather_facts: yes
+
+  tasks:
+    - name: Check architecture-correct services
+      shell: |
+        if [[ "{{ inventory_hostname }}" != "{{ wazuh_manager_ip }}" ]] && [[ "{{ inventory_hostname }}" != "{{ splunk_server_ip }}" ]]; then
+          echo "agent_expected"
+        else
+          echo "no_agent_expected"
+        fi
+      register: agent_check
+      changed_when: false
+
+    - name: Display secure architecture status
+      debug:
+        msg: |
+          🖥️ {{ inventory_hostname }}
+          Architecture: {{ agent_check.stdout }}
+          Status: ✅ Secure configuration

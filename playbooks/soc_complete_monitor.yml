@@ -1,0 +1,81 @@
+---
+- name: Complete SOC Lab Monitoring
+  hosts: security_tools
+  become: yes
+  tasks:
+    - name: Display SOC Lab Banner
+      debug:
+        msg: |
+          🚀 SOC LAB COMPLETE MONITORING
+          ==============================
+
+- name: Health Check All Servers
+  hosts: security_tools
+  become: yes
+  vars:
+    max_disk_usage: 85
+    max_memory_usage: 90
+    max_cpu_load: 4.0
+  
+  tasks:
+    - name: Check system uptime
+      command: uptime
+      register: uptime
+      changed_when: false
+
+    - name: Check disk usage
+      shell: df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+      register: disk_usage
+      changed_when: false
+
+    - name: Check memory usage
+      shell: free | awk 'NR==2{printf "%.2f", $3*100/$2}'
+      register: memory_usage
+      changed_when: false
+
+    - name: Check load average
+      shell: awk '{print $1}' /proc/loadavg
+      register: load_avg
+      changed_when: false
+
+    - name: Check critical services (ignore missing services)
+      systemd:
+        name: "{{ item }}"
+        state: started
+      loop:
+        - docker
+        - wazuh-agent
+        - splunk
+      ignore_errors: yes
+      register: service_status
+
+    - name: Display SOC health summary
+      debug:
+        msg: |
+          === SOC Health: {{ inventory_hostname }} ===
+          Uptime: {{ uptime.stdout }}
+          Disk: {{ disk_usage.stdout }}%
+          Memory: {{ memory_usage.stdout }}%
+          Load: {{ load_avg.stdout }}
+          Services: {% for service in service_status.results %}{{ service.item }}:{{ service.failed | ternary('❌', '✅') }} {% endfor %}
+
+- name: Docker Services Deep Dive
+  hosts: docker_hosts
+  become: yes
+  tasks:
+    - name: Display Docker Services Banner
+      debug:
+        msg: |
+          🐳 DOCKER SERVICES INSPECTION
+          =============================
+
+    - name: Check all running containers (simple format)
+      shell: docker ps
+      register: all_containers
+      changed_when: false
+
+    - name: Display Docker services summary
+      debug:
+        msg: |
+          === Docker Services on {{ inventory_hostname }} ===
+          {{ all_containers.stdout }}

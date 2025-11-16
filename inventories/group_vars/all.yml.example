@@ -1,0 +1,19 @@
+---
+# NETWORK CONFIGURATION - COPY TO all.yml AND FILL WITH REAL VALUES
+
+# IP Addresses
+soc_core_ip: "YOUR_SOC_CORE_IP"
+wazuh_manager_ip: "YOUR_WAZUH_MANAGER_IP"
+splunk_server_ip: "YOUR_SPLUNK_SERVER_IP"
+mail_server_ip: "YOUR_MAIL_SERVER_IP"
+honeypot_ip: "YOUR_HONEYPOT_IP"
+
+# Usernames
+soc_user: "YOUR_SOC_USER"
+wazuh_user: "YOUR_WAZUH_USER"
+splunk_user: "YOUR_SPLUNK_USER"
+mail_user: "YOUR_MAIL_USER"
+honeypot_user: "YOUR_HONEYPOT_USER"
+
+# Common variables
+ansible_python_interpreter: /usr/bin/python3

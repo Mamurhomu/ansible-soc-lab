@@ -1,0 +1,50 @@
+---
+- name: Check Docker-based SOC Services
+  hosts: docker_hosts
+  become: yes
+  vars:
+    mailcow_containers:
+      - mailcowdockerized-postfix-mailcow-1
+      - mailcowdockerized-dovecot-mailcow-1
+      - mailcowdockerized-nginx-mailcow-1
+      - mailcowdockerized-rspamd-mailcow-1
+      - mailcowdockerized-mysql-mailcow-1
+
+    soc_containers:
+      - thehive
+      - cortex
+      - shuffle
+      - velociraptor
+
+  tasks:
+    - name: Check Docker service status
+      systemd:
+        name: docker
+        state: started
+
+    - name: Check all running containers (simple format)
+      shell: docker ps
+      register: all_containers
+      changed_when: false
+
+    - name: Check specific SOC containers
+      docker_container_info:
+        name: "{{ item }}"
+      loop: "{{ soc_containers }}"
+      register: soc_container_status
+      ignore_errors: yes
+      when: "'soc_core' in group_names"
+
+    - name: Check Mailcow containers
+      docker_container_info:
+        name: "{{ item }}"
+      loop: "{{ mailcow_containers }}"
+      register: mailcow_container_status
+      ignore_errors: yes
+      when: "'mailcow_docker' in group_names"
+
+    - name: Display Docker services summary
+      debug:
+        msg: |
+          === Docker Services on {{ inventory_hostname }} ===
+          {{ all_containers.stdout }}

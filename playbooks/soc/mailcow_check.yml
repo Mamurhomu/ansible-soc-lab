@@ -1,0 +1,15 @@
+---
+- name: Check Mailcow Docker Services
+  hosts: mailcow_docker
+  become: yes
+  tasks:
+    - name: Check Mailcow containers
+      shell: docker ps | grep mailcow
+      register: mailcow_containers
+      changed_when: false
+    
+    - name: Display Mailcow status
+      debug:
+        msg: |
+          === Mailcow Status on {{ inventory_hostname }} ===
+          {{ mailcow_containers.stdout | default('No Mailcow containers found') }}

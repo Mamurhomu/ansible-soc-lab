@@ -1,0 +1,33 @@
+[security_tools]
+{{ soc_core_ip }} ansible_user={{ soc_user }}
+{{ wazuh_manager_ip }} ansible_user={{ wazuh_user }}
+{{ splunk_server_ip }} ansible_user={{ splunk_user }}
+{{ mail_server_ip }} ansible_user={{ mail_user }}
+{{ honeypot_ip }} ansible_user={{ honeypot_user }}
+
+[windows_servers]
+{{ windows_server_ip }} ansible_user={{ windows_user }} ansible_password={{ windows_password }}
+
+[soc_core]
+{{ soc_core_ip }}
+
+[log_management]
+{{ wazuh_manager_ip }}
+{{ splunk_server_ip }}
+
+[mail_servers]
+{{ mail_server_ip }}
+
+[honeypots]
+{{ honeypot_ip }}
+
+[docker_hosts:children]
+mail_servers
+soc_core
+
+[security_tools:children]
+soc_core
+log_management
+mail_servers
+honeypots
+windows_servers
